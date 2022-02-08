@@ -33,7 +33,7 @@ app.get('/collection/:collectionName', (req, res, next) => {
     })
 })
 
-app.use('/images', function (req, res, next) {
+app.use('/static', function (req, res, next) {
     // Uses path.join to find the path where the file should be
     var filePath = path.join(__dirname, 'static', req.url);
     // Built-in fs.stat gets info about a file
