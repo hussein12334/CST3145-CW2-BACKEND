@@ -1,4 +1,3 @@
-//server port
 const express = require('express') //express lib
 const cors = require('cors') //cors lib
 const mongoClient = require('mongodb').MongoClient;
@@ -24,6 +23,20 @@ app.param('collectionName', (req, res, next, collectionName) => {
 //first page of mongo server
 app.get('/', (req, res, next) => {
     res.send('Welcome to MongoDb server. ')
+})
+
+app.use(function (req, res, next) {
+    // Uses path.join to find the path where the file should be
+    var filePath = path.join(__dirname, 'static', req.url);
+    // Built-in fs.stat gets info about a file
+    fs.stat(filePath, function (err, fileInfo) {
+        if (err) {
+            next();
+            return;
+        }
+        if (fileInfo.isFile()) res.sendFile(filePath);
+        else next();
+    })
 })
 
 //displays the collections from user input on url
@@ -79,3 +92,4 @@ app.delete('/collection/:collectionName/:id', (req,res,next) =>{
 
 const port = process.env.PORT || 3000
 app.listen(port)
+
