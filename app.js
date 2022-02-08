@@ -25,6 +25,14 @@ app.get('/', (req, res, next) => {
     res.send('Welcome to MongoDb server. ')
 })
 
+//displays the collections from user input on url
+app.get('/collection/:collectionName', (req, res, next) => {
+    req.collection.find({}).toArray((error, results) => {
+        if (error) return next(error);
+        res.send(results)
+    })
+})
+
 app.use(function (req, res, next) {
     // Uses path.join to find the path where the file should be
     var filePath = path.join(__dirname, 'static', req.url);
@@ -36,14 +44,6 @@ app.use(function (req, res, next) {
         }
         if (fileInfo.isFile()) res.sendFile(filePath);
         else next();
-    })
-})
-
-//displays the collections from user input on url
-app.get('/collection/:collectionName', (req, res, next) => {
-    req.collection.find({}).toArray((error, results) => {
-        if (error) return next(error);
-        res.send(results)
     })
 })
 //posting data
@@ -92,4 +92,3 @@ app.delete('/collection/:collectionName/:id', (req,res,next) =>{
 
 const port = process.env.PORT || 3000
 app.listen(port)
-
