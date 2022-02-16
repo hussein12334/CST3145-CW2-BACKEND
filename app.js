@@ -1,6 +1,6 @@
 const express = require('express') //express lib
 const cors = require('cors') //cors lib
-const mongoClient = require('mongodb').MongoClient;
+const MongoClient = require('mongodb').MongoClient;
 const ObjectID = require('mongodb').ObjectID;
 const path = require("path");
 const fs = require("fs");
@@ -11,7 +11,7 @@ app.use(cors())
 
 //connecting to the mongoDB server
 let db;
-mongoClient.connect('mongodb+srv://hussein:Admin123@webapp.mzzs6.mongodb.net/', (err, client) => {
+MongoClient.connect('mongodb+srv://hussein:Admin123@webapp.mzzs6.mongodb.net/', (err, client) => {
     db = client.db('WebApp')
 })
 //get collection name
@@ -29,7 +29,11 @@ app.get('/', (req, res, next) => {
 app.get('/collection/:collectionName', (req, res, next) => {
     req.collection.find({}).toArray((error, results) => {
         if (error) return next(error);
-        res.send(results)
+              //allow different IP address
+      res.header("Access-Control-Allow-Origin", "*");
+      //allow different header fields
+      res.header("Access-Control-Allow-Headers", "*");
+      res.send(results)
     })
 })
 
@@ -50,13 +54,7 @@ app.use('/static', function (req, res, next) {
 app.post('/collection/:collectionName', (req, res, next) => {
     req.collection.insert(req.body, (e, results) => {
       if (e) return next(e)
-        res.status(201).send(results)
-      //allow different IP address
-      res.header("Access-Control-Allow-Origin", "*");
-      //allow different header fields
-      res.header("Access-Control-Allow-Headers", "*");
-      res.header("Access-Control-Allow-Credentials", true);
-      
+        res.status(201).send(results)     
     })
 })
 
