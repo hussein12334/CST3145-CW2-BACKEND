@@ -9,18 +9,11 @@ const app = express();
 app.use(express())
 app.use(cors())
 
-//logger
-app.use(function(req, res, next) {
-    console.log("Request IP: " + req.url)
-    console.log("Request date: " + new Date())
-})
-
 //connecting to the mongoDB server
 let db;
 mongoClient.connect('mongodb+srv://hussein:Admin123@webapp.mzzs6.mongodb.net/', (err, client) => {
     db = client.db('WebApp')
 })
-
 //get collection name
 app.param('collectionName', (req, res, next, collectionName) => {
     req.collection = db.collection(collectionName)
@@ -40,23 +33,28 @@ app.get('/collection/:collectionName', (req, res, next) => {
     })
 })
 
-//static file middleware
 app.use('/static', function (req, res, next) {
     // Uses path.join to find the path where the file should be
     var filePath = path.join(__dirname, 'static', req.url);
     // Built-in fs.stat gets info about a file
     fs.stat(filePath, function (err, fileInfo) {
-        if (err) { 
-            return next()
+        if (err) {
+            next();
+            return;
         }
-        if (fileInfo.isFile()) res.sendFile(filePath)
-        else next()
+        if (fileInfo.isFile()) res.sendFile(filePath);
+        else next();
     })
 })
 //posting data
-app.post('/collection/:collectionName', (req, res, next) => {
+app.post("/collection/:collectionName", (req, res, next) => {
     req.collection.insert(req.body, (e, results) => {
       if (e) return next(e)
+      //allow different IP address
+      res.header("Access-Control-Allow-Origin", "*");
+      //allow different header fields
+      res.header("Access-Control-Allow-Headers", "*");
+      res.header("Access-Control-Allow-Credentials", true);
       res.send(results.ops)
     })
 })
