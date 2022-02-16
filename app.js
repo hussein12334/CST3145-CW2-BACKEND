@@ -50,12 +50,13 @@ app.use('/static', function (req, res, next) {
 app.post('/collection/:collectionName', (req, res, next) => {
     req.collection.insert(req.body, (e, results) => {
       if (e) return next(e)
+        res.status(201).send(results)
       //allow different IP address
       res.header("Access-Control-Allow-Origin", "*");
       //allow different header fields
       res.header("Access-Control-Allow-Headers", "*");
       res.header("Access-Control-Allow-Credentials", true);
-      res.send(results.ops)
+      
     })
 })
 
