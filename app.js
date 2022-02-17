@@ -5,9 +5,13 @@ const ObjectID = require('mongodb').ObjectID;
 const path = require("path");
 const fs = require("fs");
 const app = express();
+const bodyParser = require("body-parser");
 
 app.use(express())
 app.use(cors())
+app.use(bodyParser.urlencoded({ extended: true })) //This middleware is used for parsing bodies from the URL.
+
+app.use(bodyParser.json()) //This middleware is used for parsing the JSON Object.
 
 //logger
 app.use(function(req, res, next) {
@@ -23,8 +27,8 @@ MongoClient.connect('mongodb+srv://hussein:Admin123@webapp.mzzs6.mongodb.net/', 
 })
 //get collection name
 app.param('collectionName', (req, res, next, collectionName) => {
-    req.collection = db.collection(collectionName)
-    return next()
+    req.collection = db.collection(collectionName);
+    return next();
 })
 
 //first page of mongo server
