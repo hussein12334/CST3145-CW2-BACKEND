@@ -42,15 +42,16 @@ let db;
 mongoClient.connect('mongodb+srv://hussein:Admin123@webapp.mzzs6.mongodb.net/', (err, client) => {
     db = client.db('WebApp')
 })
-//get collection name
-app.param('collectionName', (req, res, next, collectionName) => {
-    req.collection = db.collection(collectionName)
-    return next()
-})
 
 //first page of mongo server
 app.get('/', (req, res, next) => {
     res.send('Welcome to MongoDb server. ')
+})
+
+//get collection name
+app.param('collectionName', (req, res, next, collectionName) => {
+    req.collection = db.collection(collectionName)
+    return next()
 })
 
 //access to collections
