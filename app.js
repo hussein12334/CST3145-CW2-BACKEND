@@ -61,7 +61,7 @@ app.use('/static', function (req, res, next) {
 app.post('/collection/:collectionName', (req, res, next) => {
     req.collection.insert(req.body, (e, results) => {
       if (e) return next(e)
-        res.status(201).send(results)     
+        res.send(results.ops);    
     })
 })
 
@@ -69,7 +69,7 @@ app.post('/collection/:collectionName', (req, res, next) => {
 app.get('/collection/:collectionName/:id', (req, res, next) => {
     req.collection.findOne({ _id: new ObjectID(req.params.id) }, (e, result) => {
         if (e) return next(e)
-        res.send(result)
+        res.send(result);
     })
 })
 
