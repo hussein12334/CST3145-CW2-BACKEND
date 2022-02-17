@@ -65,7 +65,7 @@ app.post('/collection/:collectionName', (req, res, next) => {
       res.header("Access-Control-Allow-Origin", "*");
         //allow different header fields
       res.header("Access-Control-Allow-Headers", "*");
-      res.send(results.ops);
+      res.send(results);
   });
 });
 
