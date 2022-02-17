@@ -59,11 +59,12 @@ app.use('/static', function (req, res, next) {
 })
 //posting data
 app.post('/collection/:collectionName', (req, res, next) => {
-    req.collection.insert(req.body, (e, results) => {
-      if (e) return next(e)
-        res.send(results.ops);    
-    })
-})
+  req.collection.insert(req.body, (e, results) => {
+    if (e) return next(e);
+    //allow different IP address
+    res.send(results.ops);
+  });
+});
 
 //retreives object via id
 app.get('/collection/:collectionName/:id', (req, res, next) => {
