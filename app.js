@@ -11,8 +11,9 @@ app.use(cors())
 
 //logger
 app.use(function(req, res, next) {
-    res.console.log("Request IP: " + req.url);
-    res.console.log("Request date: " + Date.now());
+    console.log("Request IP: " + req.url);
+    console.log("Request date: " + Date.now());
+    next();
 })
 
 //connecting to the mongoDB server
