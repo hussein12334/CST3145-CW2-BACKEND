@@ -1,29 +1,43 @@
 const express = require('express') //express lib
 const cors = require('cors') //cors lib
-const mongoClient = require('mongodb').MongoClient;
+const MongoClient = require('mongodb').MongoClient;
 const ObjectID = require('mongodb').ObjectID;
 const path = require("path");
 const fs = require("fs");
 const app = express();
 
+app.use(express())
+app.use(cors())
 
-app.use(cors());
-
-//logger
-app.use(function(req, res, next) {
-    console.log("Request IP: " + req.url);
-    console.log("Request date: " + new Date());
+//connecting to the mongoDB server
+let db;
+MongoClient.connect('mongodb+srv://hussein:Admin123@webapp.mzzs6.mongodb.net/', (err, client) => {
+    db = client.db('WebApp')
 })
-//middeware
-app.use((req, res, next) => {
-    res.setHeader('Access-Control-Allow-Origin', '*')
-    //allow different header fields
-    res.header("Access-Control-Allow-Headers", "*")
-    next()
+//get collection name
+app.param('collectionName', (req, res, next, collectionName) => {
+    req.collection = db.collection(collectionName)
+    return next()
 })
 
+//first page of mongo server
+app.get('/', (req, res, next) => {
+    res.send('Welcome to MongoDb server. ')
+})
 
-app.use('/images', function (req, res, next) {
+//displays the collections from user input on url
+app.get('/collection/:collectionName', (req, res, next) => {
+    req.collection.find({}).toArray((error, results) => {
+        if (error) return next(error);
+              //allow different IP address
+      res.header("Access-Control-Allow-Origin", "*");
+      //allow different header fields
+      res.header("Access-Control-Allow-Headers", "*");
+      res.send(results)
+    })
+})
+
+app.use('/static', function (req, res, next) {
     // Uses path.join to find the path where the file should be
     var filePath = path.join(__dirname, 'static', req.url);
     // Built-in fs.stat gets info about a file
@@ -36,37 +50,11 @@ app.use('/images', function (req, res, next) {
         else next();
     })
 })
-
-//connecting to the mongoDB server
-let db;
-mongoClient.connect('mongodb+srv://hussein:Admin123@webapp.mzzs6.mongodb.net/', (err, client) => {
-    db = client.db('WebApp')
-})
-
-//first page of mongo server
-app.get('/', (req, res, next) => {
-    res.send('Welcome to MongoDb server. ')
-})
-
-//get collection name
-app.param('collectionName', (req, res, next, collectionName) => {
-    req.collection = db.collection(collectionName)
-    return next()
-})
-
-//access to collections
-app.get('/collection/:collectionName', (req, res, next) => {
-    req.collection.find({}).toArray((error, results) => {
-        if (error) return next(error);
-        res.send(results)
-    })
-})
-
 //posting data
 app.post('/collection/:collectionName', (req, res, next) => {
     req.collection.insert(req.body, (e, results) => {
       if (e) return next(e)
-      res.send(results.ops)
+        res.status(201).send(results)     
     })
 })
 
