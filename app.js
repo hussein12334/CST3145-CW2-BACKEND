@@ -1,17 +1,45 @@
 const express = require('express') //express lib
 const cors = require('cors') //cors lib
-const MongoClient = require('mongodb').MongoClient;
+const mongoClient = require('mongodb').MongoClient;
 const ObjectID = require('mongodb').ObjectID;
 const path = require("path");
 const fs = require("fs");
 const app = express();
 
-app.use(express())
+
 app.use(cors())
+
+//logger
+app.use(function(req, res, next) {
+    console.log("Request IP: " + req.url);
+    console.log("Request date: " + new Date());
+})
+//middeware
+app.use((req, res, next) => {
+    res.setHeader('Access-Control-Allow-Origin', '*')
+    //allow different header fields
+    res.header("Access-Control-Allow-Headers", "*")
+    next()
+})
+
+
+app.use('/images', function (req, res, next) {
+    // Uses path.join to find the path where the file should be
+    var filePath = path.join(__dirname, 'static', req.url);
+    // Built-in fs.stat gets info about a file
+    fs.stat(filePath, function (err, fileInfo) {
+        if (err) {
+            next();
+            return;
+        }
+        if (fileInfo.isFile()) res.sendFile(filePath);
+        else next();
+    })
+})
 
 //connecting to the mongoDB server
 let db;
-MongoClient.connect('mongodb+srv://hussein:Admin123@webapp.mzzs6.mongodb.net/', (err, client) => {
+mongoClient.connect('mongodb+srv://hussein:Admin123@webapp.mzzs6.mongodb.net/', (err, client) => {
     db = client.db('WebApp')
 })
 //get collection name
@@ -25,36 +53,19 @@ app.get('/', (req, res, next) => {
     res.send('Welcome to MongoDb server. ')
 })
 
-//displays the collections from user input on url
+//access to collections
 app.get('/collection/:collectionName', (req, res, next) => {
     req.collection.find({}).toArray((error, results) => {
         if (error) return next(error);
-              //allow different IP address
-      res.header("Access-Control-Allow-Origin", "*");
-      //allow different header fields
-      res.header("Access-Control-Allow-Headers", "*");
-      res.send(results)
+        res.send(results)
     })
 })
 
-app.use('/static', function (req, res, next) {
-    // Uses path.join to find the path where the file should be
-    var filePath = path.join(__dirname, 'static', req.url);
-    // Built-in fs.stat gets info about a file
-    fs.stat(filePath, function (err, fileInfo) {
-        if (err) {
-            next();
-            return;
-        }
-        if (fileInfo.isFile()) res.sendFile(filePath);
-        else next();
-    })
-})
 //posting data
 app.post('/collection/:collectionName', (req, res, next) => {
     req.collection.insert(req.body, (e, results) => {
       if (e) return next(e)
-        res.status(201).send(results)     
+      res.send(results.ops)
     })
 })
 
