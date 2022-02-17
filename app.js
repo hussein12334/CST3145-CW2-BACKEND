@@ -61,8 +61,11 @@ app.use('/static', function (req, res, next) {
 app.post('/collection/:collectionName', (req, res, next) => {
   req.collection.insert(req.body, (e, results) => {
     if (e) return next(e);
-    //allow different IP address
-    res.send(results.ops);
+        //allow different IP address
+      res.header("Access-Control-Allow-Origin", "*");
+        //allow different header fields
+      res.header("Access-Control-Allow-Headers", "*");
+      res.send(results.ops);
   });
 });
 
