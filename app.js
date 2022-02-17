@@ -5,13 +5,10 @@ const ObjectID = require('mongodb').ObjectID;
 const path = require("path");
 const fs = require("fs");
 const app = express();
-const bodyParser = require("body-parser");
 
-app.use(express())
+app.use(express.json())
 app.use(cors())
-app.use(bodyParser.urlencoded({ extended: true })) //This middleware is used for parsing bodies from the URL.
 
-app.use(bodyParser.json()) //This middleware is used for parsing the JSON Object.
 
 //logger
 app.use(function(req, res, next) {
