@@ -9,6 +9,12 @@ const app = express();
 app.use(express())
 app.use(cors())
 
+//logger
+app.use(function(req, res, next) {
+    console.log("Request IP: " + req.url);
+    console.log("Request date: " + new Date());
+})
+
 //connecting to the mongoDB server
 let db;
 MongoClient.connect('mongodb+srv://hussein:Admin123@webapp.mzzs6.mongodb.net/', (err, client) => {
