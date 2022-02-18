@@ -76,6 +76,18 @@ app.get('/collection/:collectionName/:id', (req, res, next) => {
     })
 })
 
+app.get('/collection/:collectionName/:sear', (req, res, next) => {
+
+const sear = {"$or": [
+    {'subject': {'$regex': req.params.query, '$options': 'i'}},
+    {'location': {'$regex': req.params.query, '$options': 'i'}}
+]}; 
+req.collection.find(sear).toArray((e, results) => {
+        if (e) return next(e)
+        res.send(results)
+    })
+})
+
 //replaces objects
 app.put('/collection/:collectionName/:id', (req, res, next) => {
     req.collection.update(
