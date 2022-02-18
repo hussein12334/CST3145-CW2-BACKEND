@@ -16,6 +16,12 @@ app.use(function(req, res, next) {
     console.log("Request date: " + Date.now());
     next();
 })
+//middleware
+app.use((req, res, next) => {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "*");
+    next();
+})
 
 //connecting to the mongoDB server
 let db;
@@ -37,10 +43,6 @@ app.get('/', (req, res, next) => {
 app.get('/collection/:collectionName', (req, res, next) => {
     req.collection.find({}).toArray((error, results) => {
         if (error) return next(error);
-              //allow different IP address
-      res.header("Access-Control-Allow-Origin", "*");
-      //allow different header fields
-      res.header("Access-Control-Allow-Headers", "*");
       res.send(results)
     })
 })
@@ -62,10 +64,6 @@ app.use('/static', function (req, res, next) {
 app.post('/collection/:collectionName', (req, res, next) => {
   req.collection.insert(req.body, (e, results) => {
     if (e) return next(e);
-        //allow different IP address
-      res.header("Access-Control-Allow-Origin", "*");
-        //allow different header fields
-      res.header("Access-Control-Allow-Headers", "*");
       res.send(results);
   });
 });
@@ -74,7 +72,7 @@ app.post('/collection/:collectionName', (req, res, next) => {
 app.get('/collection/:collectionName/:id', (req, res, next) => {
     req.collection.findOne({ _id: new ObjectID(req.params.id) }, (e, result) => {
         if (e) return next(e)
-        res.send(result);
+        res.send(result.ops);
     })
 })
 
