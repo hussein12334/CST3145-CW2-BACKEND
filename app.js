@@ -1,97 +1,115 @@
+const express = require('express') //express lib
+const cors = require('cors') //cors lib
+const MongoClient = require('mongodb').MongoClient;
+const ObjectID = require('mongodb').ObjectID;
+const path = require("path");
+const fs = require("fs");
+const app = express();
 
-var express = require("express");
-var app = express();
-var cors = require('cors')
-var bodyParser = require('body-parser');
-const mongoClient = require('mongodb').MongoClient
-const uri = "mongodb+srv://hussein:Admin123@webapp.mzzs6.mongodb.net/";
-
+app.use(express.json())
 app.use(cors())
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-
-
-// connect to CST3145 database which contains multiple collections (lessons/users/orders placed)
-let database
-mongoClient.connect(uri, function(err,client){
-    database = client.db('cst3145')
-})
-
-// parameter blueprint
-app.param('collectionName', function(req,res,next,collectionName){
-  req.collection = database.collection(collectionName)
-  return next()
-})
-
-//get Database data of the appropriate collection name
-app.get('/collection/:collectionName',function(req,res,next){
-  req.collection.find({}).toArray(function(err,results){
-      if (err){
-          return next(err)
-      }
-      else{
-          res.send(results)
-      }
-  })
-})
-
-//saves new order to the placedOrdersDB database
-app.post('/collection/:collectionName',function(req,res,next){
-  req.collection.insertOne(req.body,function(err,result){
-      if (err){
-          return next(err)
-      }
-      else{
-          res.send("success")
-      }
-  })
-})
-
-//updates number of spaces
-app.put('/collection/:collectionName',function(req,res,next){
-  console.log(req.body);
-  let i = 0;
-  req.body.lesson_ID.forEach(element => {
-    console.log(element);
-    console.log(req.body.spaces[i]);
-    req.collection.updateOne({
-      id: element
-    }, {
-      $set: {
-        spaces: req.body.spaces[i]
-      }
-    })
-    i++
-  });
-})
-
-// search database by either location or subject (full-text only)
-app.get('/collection/:collectionName/:value',function(req,res,next) {  
-  let value = req.params.value
-  
-  req.collection.find({$text: {$search: value}}).toArray(function(err,result) {
-    if (err){
-      return next(err)
-    }
-    else{
-      console.log(result);
-      res.send(result)
-    }
-  })
-})
 
 
 //logger
-app.use(function(req,res,next){
-  console.log("Request ID: "+req.url)
-  console.log("Request Date: "+ new Date())
-  next()
+app.use(function(req, res, next) {
+    console.log("Request IP: " + req.url);
+    console.log("Request date: " + Date.now());
+    next();
+})
+//middleware
+app.use((req, res, next) => {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "*");
+    next();
 })
 
-// returning a 404 error when path is not found
-app.use(function (request, response) {
-  response.status(404).send("page not found");
+//connecting to the mongoDB server
+let db;
+MongoClient.connect('mongodb+srv://hussein:Admin123@webapp.mzzs6.mongodb.net/', (err, client) => {
+    db = client.db('WebApp')
+})
+//get collection name
+app.param('collectionName', (req, res, next, collectionName) => {
+    req.collection = db.collection(collectionName);
+    return next();
+})
+
+//first page of mongo server
+app.get('/', (req, res, next) => {
+    res.send('Welcome to MongoDb server. ')
+})
+
+//displays the collections from user input on url
+app.get('/collection/:collectionName', (req, res, next) => {
+    req.collection.find({}).toArray((error, results) => {
+        if (error) return next(error);
+      res.send(results)
+    })
+})
+
+app.use('/static', function (req, res, next) {
+    // Uses path.join to find the path where the file should be
+    var filePath = path.join(__dirname, 'static', req.url);
+    // Built-in fs.stat gets info about a file
+    fs.stat(filePath, function (err, fileInfo) {
+        if (err) {
+            next();
+            return;
+        }
+        if (fileInfo.isFile()) res.sendFile(filePath);
+        else next();
+    })
+})
+//posting data
+app.post('/collection/:collectionName', (req, res, next) => {
+  req.collection.insert(req.body, (e, results) => {
+    if (e) return next(e);
+      res.send(results);
+  });
 });
+
+//retreives object via id
+app.get('/collection/:collectionName/:id', (req, res, next) => {
+    req.collection.findOne({ _id: new ObjectID(req.params.id) }, (e, result) => {
+        if (e) return next(e)
+        res.send(result.ops);
+    })
+})
+
+app.get('/collection/:collectionName/:sear', (req, res, next) => {
+
+const sear = {"$or": [
+    {'subject': {'$regex': req.params.query, '$options': 'i'}},
+    {'location': {'$regex': req.params.query, '$options': 'i'}}
+]}; 
+req.collection.find(sear).toArray((e, results) => {
+        if (e) return next(e)
+        res.send(results)
+    })
+})
+
+//replaces objects
+app.put('/collection/:collectionName/:id', (req, res, next) => {
+    req.collection.update(
+    {_id: new ObjectID(req.params.id)},
+    {$set: req.body},
+    {safe: true, multi: false},
+    (e, result) => {
+    if (e) return next(e)
+    res.send((result.result.n === 1) ? {msg: 'success'} : {msg: 'error'})
+    })
+})
+
+//deletes objects
+app.delete('/collection/:collectionName/:id', (req,res,next) =>{
+    req.collection.deleteOne(
+        {_id: ObjectID(req.params.id)},
+        (e,result)=>{
+            if(e) return next(e)
+            res.send((result.result.n === 1)? {msg:'success'} : {msg:'error'})
+        }
+    )
+})
 
 const port = process.env.PORT || 3000
 app.listen(port)
