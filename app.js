@@ -1,5 +1,5 @@
 const express = require('express') //express lib
-const cors = require('cors') //cors lib 
+const cors = require('cors') //cors lib gj
 const MongoClient = require('mongodb').MongoClient;
 const ObjectID = require('mongodb').ObjectID;
 const path = require("path");
